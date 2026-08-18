@@ -21,4 +21,7 @@ typedef struct Chip8
     unsigned char sound_timer;
 } Chip8;
 
+void init_chip8(Chip8 *cpu);
+void load_game(Chip8 *cpu);
+
 #endif
