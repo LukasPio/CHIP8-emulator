@@ -5,7 +5,7 @@
 
 #define FONT_START 0x50
 
-static const unsigned char font[] = {
+static const uint8_t font[] = {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
     0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -37,7 +37,7 @@ void init_chip8(Chip8 *chip8)
 
 void load(Chip8 *chip8)
 {
-
+    
 }
 
 void emulate_cycle()

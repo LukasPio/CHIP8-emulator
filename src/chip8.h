@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #ifndef CHIP8
 #define CHIP8
 
@@ -10,23 +12,23 @@
 
 typedef struct Chip8 
 {
-    unsigned short stack[CHIP8_STACK_SIZE];
-    unsigned short sp;
+    uint16_t stack[CHIP8_STACK_SIZE];
+    uint16_t *sp;
 
-    unsigned char memory[CHIP8_MEMORY_SIZE];
-    unsigned char V[CHIP8_REGISTERS_AMOUNT];
+    uint8_t memory[CHIP8_MEMORY_SIZE];
+    uint8_t V[CHIP8_REGISTERS_AMOUNT];
 
-    unsigned short I;
-    unsigned short pc;
-    unsigned short opcode;
+    uint16_t I;
+    uint16_t pc;
+    uint16_t opcode;
 
-    unsigned char sound_timer;
-    unsigned char delay_timer;
+    uint8_t sound_timer;
+    uint8_t delay_timer;
 
-    unsigned char key[CHIP8_KEYS_AMOUNT];
-    unsigned char gfx[CHIP8_COLUMNS * CHIP8_ROWS];
+    uint8_t key[CHIP8_KEYS_AMOUNT];
+    uint8_t gfx[CHIP8_COLUMNS * CHIP8_ROWS];
 
-    unsigned char drawFlag;
+    uint8_t drawFlag;
 } Chip8;
 
 void load(Chip8 *chip8);
