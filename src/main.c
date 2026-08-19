@@ -23,6 +23,7 @@ int main(void)
 
     while (!isToQuit)
     {
+        emulate_cycle();
         handle_input();
         render();
     }
