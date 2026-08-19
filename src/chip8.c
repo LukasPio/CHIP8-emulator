@@ -25,11 +25,9 @@ static const unsigned char font[] = {
 };
 
 void init_chip8(Chip8 *chip8)
-{  
-    // zeroing the chip8 object
+{
     memset(chip8, 0, sizeof(*chip8));
 
-    // loading font to interpreter memory area
     memcpy(&chip8->memory[FONT_START], font, sizeof(font));
 
     chip8->pc = 0x200;
@@ -40,4 +38,9 @@ void init_chip8(Chip8 *chip8)
 void load(Chip8 *chip8)
 {
 
+}
+
+void emulate_cycle()
+{
+    
 }
