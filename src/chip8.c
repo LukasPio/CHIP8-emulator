@@ -85,8 +85,6 @@ void load_game(Chip8 *chip8, const char *game_name)
     fclose(file);
 }
 
-// 00E0
-
 void emulate_cycle(Chip8 *chip8)
 {
     uint16_t opcode = (chip8->memory[chip8->pc] << 8) | chip8->memory[chip8->pc + 1];
@@ -113,5 +111,10 @@ void emulate_cycle(Chip8 *chip8)
         chip8->I = nnn;
         break;
     case 0xD000:
+        uint8_t start_x = chip8->V[x];
+        uint8_t start_y = chip8->V[y];
+
+        
+        break;
     }
 }
