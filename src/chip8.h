@@ -20,18 +20,19 @@ typedef struct Chip8
 
     uint16_t I;
     uint16_t pc;
-    uint16_t opcode;
 
     uint8_t sound_timer;
     uint8_t delay_timer;
 
-    uint8_t key[CHIP8_KEYS_AMOUNT];
-    uint8_t gfx[CHIP8_COLUMNS * CHIP8_ROWS];
+    uint8_t display[CHIP8_ROWS][CHIP8_COLUMNS];
+
+    uint8_t keys[CHIP8_KEYS_AMOUNT];
 
     uint8_t drawFlag;
 } Chip8;
 
-void load(Chip8 *chip8);
-void emulate_cycle();
+void init_chip8(Chip8 *chip8);
+void load_game(Chip8 *chip8, char *game);
+void emulate_cycle(Chip8 *chip8);
 
 #endif

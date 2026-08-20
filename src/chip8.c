@@ -1,6 +1,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
+#include <errno.h>
 #include "chip8.h"
 
 #define FONT_START 0x50
@@ -35,12 +37,81 @@ void init_chip8(Chip8 *chip8)
     srand(time(NULL));
 }
 
-void load(Chip8 *chip8)
+void load_game(Chip8 *chip8, const char *game_name)
 {
-    
+    char path[128];
+
+    snprintf(path, sizeof(path), "../games/%s.ch8", game_name);
+
+    FILE *file = fopen(path, "rb");
+
+    if (file == NULL)
+    {
+        perror("fopen");
+        exit(EXIT_FAILURE);
+    }
+
+    fseek(file, 0, SEEK_END);
+    long game_size = ftell(file);
+    rewind(file);
+
+    if (game_size < 0)
+    {
+        perror("ftell");
+        fclose(file);
+        exit(EXIT_FAILURE);
+    }
+
+    if (game_size > sizeof(chip8->memory) - 0x200)
+    {
+        fprintf(stderr, "ROM is too large\n");
+        fclose(file);
+        exit(EXIT_FAILURE);
+    }
+
+    size_t bytes_read = fread(
+        &chip8->memory[0x200],
+        1,
+        game_size,
+        file);
+
+    if (bytes_read != (size_t)game_size)
+    {
+        fprintf(stderr, "Failed to read complete ROM\n");
+        fclose(file);
+        exit(EXIT_FAILURE);
+    }
+
+    fclose(file);
 }
 
-void emulate_cycle()
+// 00E0
+
+void emulate_cycle(Chip8 *chip8)
 {
-    
+    uint16_t opcode = (chip8->memory[chip8->pc] << 8) | chip8->memory[chip8->pc + 1];
+    chip8->pc += 2;
+
+    uint16_t nnn = opcode & 0x0FFF;
+    uint8_t nn = opcode & 0x00FF;
+    uint8_t n = opcode & 0x000F;
+    uint8_t x = (opcode & 0x0F00) >> 8;
+    uint8_t y = (opcode & 0x00F0) >> 4;
+
+    switch (opcode & 0xF000)
+    {
+    case 0x0000:
+        if (opcode == 0x00E0)
+        {
+            memset(chip8->display, 0, sizeof(chip8->display));
+        }
+        break;
+    case 0x6000:
+        chip8->V[x] = nn;
+        break;
+    case 0xA000:
+        chip8->I = nnn;
+        break;
+    case 0xD000:
+    }
 }
