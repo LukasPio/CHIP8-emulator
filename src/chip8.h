@@ -32,7 +32,7 @@ typedef struct Chip8
 } Chip8;
 
 void init_chip8(Chip8 *chip8);
-void load_game(Chip8 *chip8, char *game);
+void load_game(Chip8 *chip8, const char *game);
 void emulate_cycle(Chip8 *chip8);
 
 #endif

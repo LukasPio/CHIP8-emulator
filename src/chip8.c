@@ -29,19 +29,19 @@ static const uint8_t font[] = {
 void init_chip8(Chip8 *chip8)
 {
     memset(chip8, 0, sizeof(*chip8));
-
     memcpy(&chip8->memory[FONT_START], font, sizeof(font));
 
     chip8->pc = 0x200;
+    chip8->sp = chip8->stack;
 
     srand(time(NULL));
 }
 
-void load_game(Chip8 *chip8, const char *game_name)
+void load_game(Chip8 *chip8, const char *romname)
 {
     char path[128];
 
-    snprintf(path, sizeof(path), "../games/%s.ch8", game_name);
+    snprintf(path, sizeof(path), "./roms/%s.ch8", romname);
 
     FILE *file = fopen(path, "rb");
 
@@ -52,7 +52,7 @@ void load_game(Chip8 *chip8, const char *game_name)
     }
 
     fseek(file, 0, SEEK_END);
-    long game_size = ftell(file);
+    unsigned long game_size = ftell(file);
     rewind(file);
 
     if (game_size < 0)
@@ -104,17 +104,60 @@ void emulate_cycle(Chip8 *chip8)
             memset(chip8->display, 0, sizeof(chip8->display));
         }
         break;
+    case 0x3000:
+        if (chip8->V[x] == nn)
+            chip8->pc += 2;
+        break;
+    case 0x4000:
+        if (chip8->V[x] != nn)
+            chip8->pc += 2;
+        break;
+    case 0x5000:
+        if (chip8->V[x] == chip8->V[y])
+            chip8->pc += 2;
+        break;
     case 0x6000:
         chip8->V[x] = nn;
+        break;
+    case 0x7000:
+        chip8->V[x] += nn;
+        break;
+    case 0x9000:
+        if (chip8->V[x] == chip8->V[y])
+            chip8->pc += 2;
+        break;
+    case 0x1000:
+        chip8->pc = nnn;
         break;
     case 0xA000:
         chip8->I = nnn;
         break;
     case 0xD000:
+    {
         uint8_t start_x = chip8->V[x];
         uint8_t start_y = chip8->V[y];
+        chip8->V[0xF] = 0;
 
-        
-        break;
+        for (uint8_t row = 0; row < n; row++)
+        {
+            uint8_t spriterow = chip8->memory[chip8->I + row];
+            for (uint8_t column = 0; column < 8; column++)
+            {
+                uint8_t spritepixel = spriterow & (0x80 >> column);
+
+                if (spritepixel == 0)
+                    continue;
+
+                uint8_t screen_x = (start_x + column) % CHIP8_COLUMNS;
+                uint8_t screen_y = (start_y + row) % CHIP8_ROWS;
+
+                if (chip8->display[screen_y][screen_x] == 1)
+                    chip8->V[0xF] = 1;
+
+                chip8->display[screen_y][screen_x] ^= 1;
+            }
+        }
+    }
+    break;
     }
 }

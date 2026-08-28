@@ -6,6 +6,9 @@
 
 #include "chip8.h"
 
+#define BACKGROUND_COLOR 99, 66, 01, 255
+#define SPRITE_COLOR 255, 204, 01, 255
+
 void setupGraphics(void);
 void setupInput(void);
 void at_sdlerror(void);
@@ -15,7 +18,7 @@ void render(void);
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
-Chip8 chip8;
+Chip8 chip8 = {0};
 int isToQuit = 0;
 
 int main(void)
@@ -24,14 +27,13 @@ int main(void)
     setupInput();
 
     init_chip8(&chip8);
-    load_game(&chip8, "pong");
+    load_game(&chip8, "3-corax+");
 
     while (!isToQuit)
     {
         emulate_cycle(&chip8);
         
-        if (chip8.drawFlag)
-            render();
+        render();
 
         handle_input();
     }
@@ -109,11 +111,20 @@ void handle_input(void)
 
 void render(void)
 {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, BACKGROUND_COLOR);
     SDL_RenderClear(renderer);
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderDrawPoint(renderer, 32, 16);
+    SDL_SetRenderDrawColor(renderer, SPRITE_COLOR);
+    for (int row = 0; row < CHIP8_ROWS; row++)
+    {
+        for (int column = 0; column < CHIP8_COLUMNS; column++)
+        {
+            if (chip8.display[row][column] == 1)
+            {
+                SDL_RenderDrawPoint(renderer, column, row);
+            }
+        }
+    }
 
     SDL_RenderPresent(renderer);
 }
