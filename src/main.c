@@ -39,9 +39,9 @@ int main(int argc, char *argv[])
     {
         emulate_cycle(&chip8);
 
-        handle_input();
-
         render();
+        
+        handle_input();
     }
 
     quit();
@@ -65,7 +65,7 @@ void setupGraphics(void)
 
     renderer = SDL_CreateRenderer(window,
                                   -1,
-                                  SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+                                  SDL_RENDERER_ACCELERATED);
     if (renderer == NULL)
         at_sdlerror();
 
@@ -75,6 +75,7 @@ void setupGraphics(void)
 
 void setupInput(void)
 {
+
 }
 
 void at_sdlerror(void)
