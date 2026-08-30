@@ -21,21 +21,27 @@ SDL_Renderer *renderer = NULL;
 Chip8 chip8 = {0};
 int isToQuit = 0;
 
-int main(void)
+int main(int argc, char *argv[])
 {
+    if (argc != 2)
+    {
+        printf("Usage: chip8 <rom-path>\n");
+        exit(1);
+    }
+
     setupGraphics();
     setupInput();
 
     init_chip8(&chip8);
-    load_game(&chip8, "3-corax+");
+    load_game(&chip8, argv[1]);
 
     while (!isToQuit)
     {
         emulate_cycle(&chip8);
-        
-        render();
 
         handle_input();
+
+        render();
     }
 
     quit();
