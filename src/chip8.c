@@ -86,7 +86,6 @@ void emulate_cycle(Chip8 *chip8)
 {
     uint16_t opcode = (chip8->memory[chip8->pc] << 8) | chip8->memory[chip8->pc + 1];
     chip8->pc += 2;
-
     uint16_t nnn = opcode & 0x0FFF;
     uint8_t nn = opcode & 0x00FF;
     uint8_t n = opcode & 0x000F;
@@ -148,19 +147,37 @@ void emulate_cycle(Chip8 *chip8)
             chip8->V[x] ^= chip8->V[y];
             break;
         case 0x0004:
-            chip8->V[x] += chip8->V[y];
+        {
+            uint16_t sum = (uint16_t)chip8->V[x] + (uint16_t)chip8->V[y];
+            chip8->V[x] = sum;
+            chip8->V[0xF] = (sum > UINT8_MAX);
             break;
+        }
         case 0x0005:
-            chip8->V[x] -= chip8->V[y];
-            break;
+        {
+            uint8_t result = (uint8_t)(chip8->V[x] - chip8->V[y]);
+            uint8_t noborrow = chip8->V[x] >= chip8->V[y];
+
+            chip8->V[x] = result;
+            chip8->V[0xF] = noborrow;
+        }
+        break;
         case 0x0006:
             chip8->V[x] >>= 1;
+            chip8->V[0xF] = (chip8->V[x] & 0b00000001);
             break;
         case 0x0007:
-            chip8->V[x] = chip8->V[y] - chip8->V[x];
+        {
+            uint8_t result = (uint8_t)(chip8->V[y] - chip8->V[x]);
+            uint8_t noborrow = chip8->V[y] >= chip8->V[x];
+
+            chip8->V[x] = result;
+            chip8->V[0xF] = noborrow;
             break;
+        }
         case 0x000E:
             chip8->V[x] <<= 1;
+            chip8->V[0xF] = (chip8->V[x] & 0b10000000);
             break;
         }
         break;
@@ -198,9 +215,37 @@ void emulate_cycle(Chip8 *chip8)
         }
     }
     break;
+    case 0xE000:
+        switch (opcode & 0x000F)
+        {
+        case 0x000E:
+            if (chip8->keys[x & 0x0F])
+            {
+                chip8->pc += 2;
+            }
+            break;
+        case 0x0001:
+            if (!chip8->keys[x & 0x0F])
+            {
+                chip8->pc += 2;
+            }
+            break;
+        }
+        break;
     case 0xF000:
         switch (opcode & 0x00FF)
         {
+        case 0x000A:
+            chip8->pc -= 2;
+            for (int i = 0; i < sizeof(chip8->keys) / sizeof(chip8->keys[0]); i++)
+            {
+                if (chip8->keys[i])
+                {
+                    chip8->pc += 2;
+                    break;
+                };
+            }    
+            break;
         case 0x0065:
             for (int i = 0; i <= x; i++)
             {
@@ -214,9 +259,9 @@ void emulate_cycle(Chip8 *chip8)
             }
             break;
         case 0x0033:
-            chip8->memory[chip8->I] = chip8->V[x]/100;
-            chip8->memory[chip8->I + 1] = (chip8->V[x]/10) % 10;
-            chip8->memory[chip8->I + 2] = chip8->V[x]%10;
+            chip8->memory[chip8->I] = chip8->V[x] / 100;
+            chip8->memory[chip8->I + 1] = (chip8->V[x] / 10) % 10;
+            chip8->memory[chip8->I + 2] = chip8->V[x] % 10;
             break;
         case 0x001E:
             chip8->I += chip8->V[x];
