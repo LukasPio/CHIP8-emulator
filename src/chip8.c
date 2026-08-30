@@ -32,21 +32,18 @@ void init_chip8(Chip8 *chip8)
     memcpy(&chip8->memory[FONT_START], font, sizeof(font));
 
     chip8->pc = 0x200;
-    chip8->sp = chip8->stack;
+    chip8->sp = 0;
 
     srand(time(NULL));
 }
 
-void load_game(Chip8 *chip8, const char *romname)
+void load_game(Chip8 *chip8, const char *rompath)
 {
-    char path[128];
-
-    snprintf(path, sizeof(path), "./roms/%s.ch8", romname);
-
-    FILE *file = fopen(path, "rb");
+    FILE *file = fopen(rompath, "rb");
 
     if (file == NULL)
     {
+        printf("ROM was not found on %s\n", rompath);
         perror("fopen");
         exit(EXIT_FAILURE);
     }
@@ -103,6 +100,19 @@ void emulate_cycle(Chip8 *chip8)
         {
             memset(chip8->display, 0, sizeof(chip8->display));
         }
+        else if (opcode == 0x00EE)
+        {
+            chip8->sp--;
+            chip8->pc = chip8->stack[chip8->sp];
+        }
+        break;
+    case 0x1000:
+        chip8->pc = nnn;
+        break;
+    case 0x2000:
+        chip8->stack[chip8->sp] = chip8->pc;
+        chip8->sp++;
+        chip8->pc = nnn;
         break;
     case 0x3000:
         if (chip8->V[x] == nn)
@@ -122,12 +132,41 @@ void emulate_cycle(Chip8 *chip8)
     case 0x7000:
         chip8->V[x] += nn;
         break;
-    case 0x9000:
-        if (chip8->V[x] == chip8->V[y])
-            chip8->pc += 2;
+    case 0x8000:
+        switch (opcode & 0x000F)
+        {
+        case 0x0000:
+            chip8->V[x] = chip8->V[y];
+            break;
+        case 0x0001:
+            chip8->V[x] |= chip8->V[y];
+            break;
+        case 0x0002:
+            chip8->V[x] &= chip8->V[y];
+            break;
+        case 0x0003:
+            chip8->V[x] ^= chip8->V[y];
+            break;
+        case 0x0004:
+            chip8->V[x] += chip8->V[y];
+            break;
+        case 0x0005:
+            chip8->V[x] -= chip8->V[y];
+            break;
+        case 0x0006:
+            chip8->V[x] >>= 1;
+            break;
+        case 0x0007:
+            chip8->V[x] = chip8->V[y] - chip8->V[x];
+            break;
+        case 0x000E:
+            chip8->V[x] <<= 1;
+            break;
+        }
         break;
-    case 0x1000:
-        chip8->pc = nnn;
+    case 0x9000:
+        if (chip8->V[x] != chip8->V[y])
+            chip8->pc += 2;
         break;
     case 0xA000:
         chip8->I = nnn;
@@ -159,5 +198,29 @@ void emulate_cycle(Chip8 *chip8)
         }
     }
     break;
+    case 0xF000:
+        switch (opcode & 0x00FF)
+        {
+        case 0x0065:
+            for (int i = 0; i <= x; i++)
+            {
+                chip8->V[i] = chip8->memory[chip8->I + i];
+            }
+            break;
+        case 0x0055:
+            for (int i = 0; i <= x; i++)
+            {
+                chip8->memory[chip8->I + i] = chip8->V[i];
+            }
+            break;
+        case 0x0033:
+            chip8->memory[chip8->I] = chip8->V[x]/100;
+            chip8->memory[chip8->I + 1] = (chip8->V[x]/10) % 10;
+            chip8->memory[chip8->I + 2] = chip8->V[x]%10;
+            break;
+        case 0x001E:
+            chip8->I += chip8->V[x];
+            break;
+        }
     }
 }
