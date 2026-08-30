@@ -13,7 +13,7 @@
 typedef struct Chip8 
 {
     uint16_t stack[CHIP8_STACK_SIZE];
-    uint16_t *sp;
+    uint16_t sp;
 
     uint8_t memory[CHIP8_MEMORY_SIZE];
     uint8_t V[CHIP8_REGISTERS_AMOUNT];
