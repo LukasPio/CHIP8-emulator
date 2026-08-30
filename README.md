@@ -1,84 +1,105 @@
 # CHIP-8 Emulator
 
-A CHIP-8 emulator written in C using SDL2 for graphics and input. The project
-is under active development and is being expanded to support the complete
-CHIP-8 instruction set, with the goal of running any CHIP-8 game ROM.
+Emulador CHIP-8 em C, com vídeo e eventos gerenciados pela SDL2. O projeto
+ainda está em desenvolvimento: ele já carrega ROMs pela linha de comando,
+executa parte do conjunto de instruções e renderiza a tela clássica de
+`64 × 32` pixels, mas ainda não oferece compatibilidade completa com jogos.
 
-## Project status
+## Estado atual
 
-This emulator is still in development. It currently runs the bundled Corax+
-opcode test ROM and renders the CHIP-8 display in a fullscreen window. Support
-for the remaining instructions and features is planned so that it can run any
-CHIP-8 game ROM.
+A implementação possui:
 
-The current implementation includes:
+- 4 KiB de memória, 16 registradores de 8 bits, registrador de índice, pilha,
+  program counter e registradores de timer;
+- fonte hexadecimal padrão carregada a partir do endereço `0x50`;
+- carregamento de ROMs no endereço convencional `0x200`, com limite de
+  3.584 bytes;
+- tela monocromática de `64 × 32` pixels, desenhada em uma janela SDL2 em
+  tela cheia;
+- desenho de sprites com XOR, wrapping nas bordas e detecção de colisão;
+- saltos, chamadas e retornos de sub-rotinas, comparações, operações lógicas
+  e aritméticas, além de algumas operações de memória.
 
-- 4 KB of CHIP-8 memory, 16 general-purpose registers, a stack, timers, and a
-  64 × 32 monochrome display
-- The standard CHIP-8 font set loaded at address `0x50`
-- ROM loading at the conventional `0x200` start address
-- SDL2-based display rendering
-- A subset of CHIP-8 instructions, including clear screen, jumps, conditional
-  skips, register assignment/addition, index-register assignment, and sprite
-  drawing
+Os opcodes implementados atualmente são:
 
-Keypad input, timer updates, sound, subroutines, and several instruction
-families are not implemented yet. As a result, many CHIP-8 ROMs will not run
-correctly.
+```text
+00E0  00EE  1nnn  2nnn  3xnn  4xnn  5xy0  6xnn  7xnn
+8xy0  8xy1  8xy2  8xy3  8xy4  8xy5  8xy6  8xy7  8xyE
+9xy0  Annn  Dxyn  Fx1E  Fx33  Fx55  Fx65
+```
 
-## Requirements
+### Limitações conhecidas
 
-- A C compiler such as GCC
-- GNU Make
-- SDL2 development files
+- O teclado hexadecimal do CHIP-8 ainda não está conectado ao teclado do
+  computador; apenas `Q` e o botão de fechar a janela encerram o emulador.
+- Os timers de delay e som fazem parte do estado da máquina, mas ainda não
+  são atualizados, e não há saída de áudio.
+- Vários opcodes ainda não estão implementados. Em particular, as instruções
+  aritméticas e de deslocamento da família `8xy_` ainda não atualizam `VF`
+  para carry, borrow ou bit deslocado.
+- A emulação executa um opcode por quadro renderizado, sem uma frequência de
+  CPU configurável e sem temporização independente a 60 Hz.
+- Não há tratamento explícito para opcodes desconhecidos nem proteções contra
+  underflow/overflow da pilha durante a execução.
 
-On Debian or Ubuntu, the dependencies can be installed with:
+Por essas limitações, as ROMs incluídas são úteis para acompanhar o progresso,
+mas jogos e testes de compatibilidade podem não funcionar corretamente.
+
+## Requisitos
+
+- GCC ou outro compilador C compatível com as opções do `Makefile`;
+- GNU Make;
+- arquivos de desenvolvimento da SDL2;
+- suporte do compilador a AddressSanitizer e UndefinedBehaviorSanitizer.
+
+No Debian e derivados:
 
 ```sh
 sudo apt install build-essential libsdl2-dev
 ```
 
-## Build and run
+## Compilação
 
-From the project root, run:
+Na raiz do projeto, execute:
 
 ```sh
 make compile
-./build/chip8
 ```
 
-The build enables AddressSanitizer and UndefinedBehaviorSanitizer and includes
-debug symbols.
+O executável é gerado em `build/chip8`. A compilação atual usa símbolos de
+debug, desativa otimizações e habilita AddressSanitizer e
+UndefinedBehaviorSanitizer.
 
-Press `Q` or close the window to quit.
+> O diretório `build/` já faz parte do repositório. Se ele for removido, crie-o
+> novamente antes de compilar com `mkdir -p build`.
 
-## Selecting a ROM
+## Execução
 
-The ROM is currently chosen at compile time in `src/main.c`:
+Informe o caminho completo ou relativo de uma ROM `.ch8`:
 
-```c
-load_game(&chip8, "3-corax+");
+```sh
+./build/chip8 roms/3-corax+.ch8
 ```
 
-`load_game` looks for `./roms/<name>.ch8`, so the executable must be launched
-from the project root. To run another bundled ROM, replace `"3-corax+"` with
-one of these names and rebuild:
+Para executar as outras ROMs incluídas:
 
-- `1-chip8-logo`
-- `2-ibm-logo`
-- `3-corax+`
+```sh
+./build/chip8 roms/1-chip8-logo.ch8
+./build/chip8 roms/2-ibm-logo.ch8
+```
 
-You can also place another `.ch8` file in `roms/` and use its filename without
-the extension.
+Sem um argumento, o programa exibe `Usage: chip8 <rom-path>` e encerra. Para
+sair durante a execução, pressione `Q` ou feche a janela.
 
-## Project layout
+## Estrutura do projeto
 
 ```text
 .
-├── Makefile       # Debug/sanitizer build command
-├── roms/          # Bundled CHIP-8 ROMs
+├── Makefile       # Receita de compilação com debug e sanitizers
+├── build/         # Executável gerado
+├── roms/          # ROMs CHIP-8 incluídas para teste
 └── src/
-    ├── chip8.c    # CPU initialization, ROM loading, and instruction execution
-    ├── chip8.h    # CHIP-8 state and public interface
-    └── main.c     # SDL2 window, render loop, and host input
+    ├── chip8.c    # Inicialização, carregamento da ROM e execução de opcodes
+    ├── chip8.h    # Estado da máquina e interface pública
+    └── main.c     # Inicialização da SDL2, loop principal, eventos e renderização
 ```
