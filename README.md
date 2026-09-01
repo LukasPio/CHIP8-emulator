@@ -1,11 +1,18 @@
 # CHIP-8 Emulator
 
-Emulador CHIP-8 em C, com vídeo e eventos gerenciados pela SDL2. O projeto
-ainda está em desenvolvimento: ele já carrega ROMs pela linha de comando,
-executa parte do conjunto de instruções e renderiza a tela clássica de
-`64 × 32` pixels, mas ainda não oferece compatibilidade completa com jogos.
+Emulador CHIP-8 em C, com vídeo, áudio e eventos gerenciados pela SDL2. O
+programa carrega ROMs pela linha de comando e implementa o conjunto de
+instruções, a tela, o teclado e os timers do CHIP-8 clássico.
 
-## Estado atual
+> [!IMPORTANT]
+> Este emulador foi feito exclusivamente para ROMs do CHIP-8 clássico. Não
+> há suporte a extensões ou variantes como SUPER-CHIP (SCHIP), XO-CHIP e
+> similares.
+
+## Estado do projeto
+
+O projeto está **completo** dentro do escopo proposto: executar ROMs de CHIP-8
+clássico. Não está planejada a implementação de variantes mais modernas.
 
 A implementação possui:
 
@@ -17,33 +24,28 @@ A implementação possui:
 - tela monocromática de `64 × 32` pixels, desenhada em uma janela SDL2 em
   tela cheia;
 - desenho de sprites com XOR, wrapping nas bordas e detecção de colisão;
-- saltos, chamadas e retornos de sub-rotinas, comparações, operações lógicas
-  e aritméticas, além de algumas operações de memória.
+- teclado hexadecimal mapeado para o teclado do computador;
+- timers de delay e som atualizados a `60 Hz`, com sinal sonoro;
+- CPU emulada a `700 Hz`;
+- saltos, chamadas e retornos de sub-rotinas, comparações, operações
+  lógicas, aritméticas e de memória.
 
 Os opcodes implementados atualmente são:
 
 ```text
 00E0  00EE  1nnn  2nnn  3xnn  4xnn  5xy0  6xnn  7xnn
 8xy0  8xy1  8xy2  8xy3  8xy4  8xy5  8xy6  8xy7  8xyE
-9xy0  Annn  Dxyn  Fx1E  Fx33  Fx55  Fx65
+9xy0  Annn  Bnnn  Cxnn  Dxyn  Ex9E  ExA1  Fx07  Fx0A
+Fx15  Fx18  Fx1E  Fx29  Fx33  Fx55  Fx65
 ```
 
-### Limitações conhecidas
+## Sobre os commits e este README
 
-- O teclado hexadecimal do CHIP-8 ainda não está conectado ao teclado do
-  computador; apenas `Q` e o botão de fechar a janela encerram o emulador.
-- Os timers de delay e som fazem parte do estado da máquina, mas ainda não
-  são atualizados, e não há saída de áudio.
-- Vários opcodes ainda não estão implementados. Em particular, as instruções
-  aritméticas e de deslocamento da família `8xy_` ainda não atualizam `VF`
-  para carry, borrow ou bit deslocado.
-- A emulação executa um opcode por quadro renderizado, sem uma frequência de
-  CPU configurável e sem temporização independente a 60 Hz.
-- Não há tratamento explícito para opcodes desconhecidos nem proteções contra
-  underflow/overflow da pilha durante a execução.
+Os commits deste repositório foram feitos com auxílio de IA. Por isso, as
+mensagens provavelmente não são muito confiáveis como descrição exata das
+mudanças.
 
-Por essas limitações, as ROMs incluídas são úteis para acompanhar o progresso,
-mas jogos e testes de compatibilidade podem não funcionar corretamente.
+> Eu gosto de programar, não de escrever commits ou READMEs.
 
 ## Requisitos
 
@@ -78,28 +80,38 @@ UndefinedBehaviorSanitizer.
 Informe o caminho completo ou relativo de uma ROM `.ch8`:
 
 ```sh
-./build/chip8 roms/3-corax+.ch8
+./build/chip8 roms/3_corax_plus.ch8
 ```
 
 Para executar as outras ROMs incluídas:
 
 ```sh
-./build/chip8 roms/1-chip8-logo.ch8
-./build/chip8 roms/2-ibm-logo.ch8
+./build/chip8 roms/1_chip8_logo.ch8
+./build/chip8 roms/2_ibm_logo.ch8
 ```
 
-Sem um argumento, o programa exibe `Usage: chip8 <rom-path>` e encerra. Para
-sair durante a execução, pressione `Q` ou feche a janela.
+Sem um argumento, o programa exibe `Usage: chip8 <rom_path>` e encerra. Para
+sair durante a execução, pressione `-` ou feche a janela.
+
+O teclado hexadecimal segue este mapeamento:
+
+```text
+CHIP-8       Teclado
+1 2 3 C      1 2 3 4
+4 5 6 D      Q W E R
+7 8 9 E      A S D F
+A 0 B F      Z X C V
+```
 
 ## Estrutura do projeto
 
 ```text
 .
-├── Makefile       # Receita de compilação com debug e sanitizers
-├── build/         # Executável gerado
-├── roms/          # ROMs CHIP-8 incluídas para teste
+├── Makefile
+├── build/
+├── roms/
 └── src/
-    ├── chip8.c    # Inicialização, carregamento da ROM e execução de opcodes
-    ├── chip8.h    # Estado da máquina e interface pública
-    └── main.c     # Inicialização da SDL2, loop principal, eventos e renderização
+    ├── chip8.c
+    ├── chip8.h
+    └── main.c
 ```
