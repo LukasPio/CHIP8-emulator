@@ -34,23 +34,23 @@ SDL_Renderer *renderer = NULL;
 SDL_AudioDeviceID audio_device = 0;
 chip8_t chip8 = {0};
 
-const SDL_Keycode emulation_keys[] = {
-    SDLK_1,
-    SDLK_2,
-    SDLK_3,
-    SDLK_4,
-    SDLK_q,
-    SDLK_w,
-    SDLK_e,
-    SDLK_r,
-    SDLK_a,
-    SDLK_s,
-    SDLK_d,
-    SDLK_f,
-    SDLK_z,
-    SDLK_x,
-    SDLK_c,
-    SDLK_v,
+const SDL_Keycode emulation_keys[16] = {
+    SDLK_x, // 0
+    SDLK_1, // 1
+    SDLK_2, // 2
+    SDLK_3, // 3
+    SDLK_q, // 4
+    SDLK_w, // 5
+    SDLK_e, // 6
+    SDLK_a, // 7
+    SDLK_s, // 8
+    SDLK_d, // 9
+    SDLK_z, // A
+    SDLK_c, // B
+    SDLK_4, // C
+    SDLK_r, // D
+    SDLK_f, // E
+    SDLK_v  // F
 };
 int is_to_quit = 0;
 int audio_playing = 0;
@@ -109,7 +109,7 @@ void setup_graphics(void)
     window = SDL_CreateWindow("CHIP8", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, CHIP8_COLUMNS, CHIP8_ROWS, SDL_WINDOW_SHOWN);
     if (window == NULL)
         at_sdl_error();
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == NULL)
         at_sdl_error();
     SDL_RenderSetLogicalSize(renderer, CHIP8_COLUMNS, CHIP8_ROWS);
