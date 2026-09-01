@@ -72,15 +72,14 @@ sudo apt install build-essential libsdl2-dev
 Na raiz do projeto, execute:
 
 ```sh
+mkdir -p build
 make compile
 ```
 
 O executável é gerado em `build/chip8`. A compilação atual usa símbolos de
 debug, desativa otimizações e habilita AddressSanitizer e
-UndefinedBehaviorSanitizer.
-
-> O diretório `build/` já faz parte do repositório. Se ele for removido, crie-o
-> novamente antes de compilar com `mkdir -p build`.
+UndefinedBehaviorSanitizer. Como o diretório `build/` é ignorado pelo Git, ele
+precisa ser criado antes da primeira compilação.
 
 ### Execução
 
@@ -122,6 +121,19 @@ A 0 B F      Z X C V
     ├── chip8.h
     └── main.c
 ```
+
+### Fontes e referências
+
+As seguintes fontes foram usadas durante o desenvolvimento:
+
+- [How to write an emulator (CHIP-8 interpreter)](https://multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/)
+  — guia usado para entender o caminho inicial da implementação;
+- [Timendus CHIP-8 Test Suite](https://github.com/Timendus/chip8-test-suite)
+  — ROMs usadas para testar o emulador;
+- [CHIP-8 — Wikipedia](https://en.wikipedia.org/wiki/CHIP-8) — especificações
+  técnicas e referência dos opcodes;
+- [JamesGriffin/CHIP-8-Emulator](https://github.com/JamesGriffin/CHIP-8-Emulator/)
+  — projeto completo usado como referência e inspiração.
 
 ## English
 
@@ -189,15 +201,14 @@ sudo apt install build-essential libsdl2-dev
 From the project root, run:
 
 ```sh
+mkdir -p build
 make compile
 ```
 
 The executable is generated at `build/chip8`. The current build includes
 debug symbols, disables optimizations, and enables AddressSanitizer and
-UndefinedBehaviorSanitizer.
-
-> The `build/` directory is already part of the repository. If it is removed,
-> recreate it before compiling with `mkdir -p build`.
+UndefinedBehaviorSanitizer. Since the `build/` directory is ignored by Git,
+it must be created before the first build.
 
 ### Running
 
@@ -239,3 +250,16 @@ A 0 B F      Z X C V
     ├── chip8.h
     └── main.c
 ```
+
+### Sources and references
+
+The following sources were used during development:
+
+- [How to write an emulator (CHIP-8 interpreter)](https://multigesture.net/articles/how-to-write-an-emulator-chip-8-interpreter/)
+  — a guide used to understand how to get started with the implementation;
+- [Timendus CHIP-8 Test Suite](https://github.com/Timendus/chip8-test-suite)
+  — test ROMs used to validate the emulator;
+- [CHIP-8 — Wikipedia](https://en.wikipedia.org/wiki/CHIP-8) — technical
+  specifications and opcode reference;
+- [JamesGriffin/CHIP-8-Emulator](https://github.com/JamesGriffin/CHIP-8-Emulator/)
+  — a complete project used as a reference and source of inspiration.
