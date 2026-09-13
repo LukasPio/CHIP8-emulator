@@ -54,7 +54,66 @@ mudanças.
 
 > Eu gosto de programar, não de escrever commits ou READMEs.
 
-### Requisitos
+### Releases portáteis (sem instalação)
+
+Os pacotes de release são para **x86_64 (64 bits)**. Extraia o pacote em uma
+pasta do seu usuário. Não é necessário instalar SDL2, usar administrador ou
+executar um instalador. As ROMs não fazem parte dos pacotes.
+
+[Release v1.0.0 e checksums SHA-256](https://github.com/LukasPio/CHIP8-Emulator/releases/tag/v1.0.0).
+
+**Windows 10/11:** extraia [chip8-1.0.0-windows-x86_64.zip](https://github.com/LukasPio/CHIP8-Emulator/releases/download/v1.0.0/chip8-1.0.0-windows-x86_64.zip) e execute no
+PowerShell, dentro da pasta extraída:
+
+```powershell
+.\chip8.exe "C:\Jogos\minha rom.ch8"
+```
+
+O `chip8.exe` contém a SDL2 e o runtime do compilador; não precisa de DLLs
+adicionais. O manifesto usa `asInvoker`, sem solicitação de elevação.
+
+**Linux:** extraia [chip8-1.0.0-linux-x86_64.tar.gz](https://github.com/LukasPio/CHIP8-Emulator/releases/download/v1.0.0/chip8-1.0.0-linux-x86_64.tar.gz) e execute:
+
+```sh
+tar -xzf chip8-1.0.0-linux-x86_64.tar.gz
+cd chip8-1.0.0-linux-x86_64
+./chip8 "/home/usuario/Jogos/minha rom.ch8"
+```
+
+O pacote preserva a permissão de execução. Se o arquivo for copiado por um
+programa que a remova, use `chmod +x chip8` (sem `sudo`). Requer glibc 2.35 ou
+superior e uma sessão gráfica X11 ou Wayland, com os drivers de vídeo/áudio
+usuais da distribuição. A SDL2 está incorporada. A base de compilação é
+Ubuntu 22.04; Linux com musl (como Alpine) não é compatível com este pacote.
+
+Use `--help` para consultar a sintaxe. Caminhos relativos são resolvidos a
+partir da pasta atual do terminal. Pressione `-` para sair.
+
+### Gerar os pacotes de release
+
+Para manter a mesma base de compatibilidade Linux, compile pelo Docker:
+
+```sh
+docker build -f packaging/Dockerfile -t chip8-release-builder .
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" chip8-release-builder
+```
+
+Os dois arquivos, pastas extraídas e `SHA256SUMS` são gerados em `dist/`.
+As compilações de release usam otimização, sem sanitizers. O download da
+SDL2 tem versão fixa e SHA-256 verificado; a licença acompanha os pacotes.
+
+Para compilar diretamente em um host Linux x86_64, instale CMake, Ninja,
+GNU Make, GCC, pkg-config, curl, zip e os headers de desenvolvimento SDL2.
+Para Windows, instale também `gcc-mingw-w64-x86-64`. Execute `make release`
+(ambos), `make release-linux` ou `make release-windows`. Um build Linux
+feito em uma distribuição mais nova pode exigir uma glibc mais nova.
+
+O workflow `.github/workflows/release.yml` gera os dois pacotes e testa os
+executáveis em Linux e Windows. Uma execução manual disponibiliza os
+artefatos; uma tag `v1.0.0` (correspondente à versão no CMake) também cria
+uma GitHub Release com ambos os downloads, após os testes passarem.
+
+### Requisitos para desenvolvimento
 
 - GCC ou outro compilador C compatível com as opções do `Makefile`;
 - GNU Make;
@@ -72,28 +131,26 @@ sudo apt install build-essential libsdl2-dev
 Na raiz do projeto, execute:
 
 ```sh
-mkdir -p build
 make compile
 ```
 
 O executável é gerado em `build/chip8`. A compilação atual usa símbolos de
 debug, desativa otimizações e habilita AddressSanitizer e
-UndefinedBehaviorSanitizer. Como o diretório `build/` é ignorado pelo Git, ele
-precisa ser criado antes da primeira compilação.
+UndefinedBehaviorSanitizer. O diretório `build/` é criado automaticamente e ignorado pelo Git.
 
 ### Execução
 
 Informe o caminho completo ou relativo de uma ROM `.ch8`:
 
 ```sh
-./build/chip8 roms/3_corax_plus.ch8
+./build/chip8 roms/test/3_corax_plus.ch8
 ```
 
 Para executar as outras ROMs incluídas:
 
 ```sh
-./build/chip8 roms/1_chip8_logo.ch8
-./build/chip8 roms/2_ibm_logo.ch8
+./build/chip8 roms/test/1_chip8_logo.ch8
+./build/chip8 roms/test/2_ibm_logo.ch8
 ```
 
 Sem um argumento, o programa exibe `Usage: chip8 <rom_path>` e encerra. Para
@@ -113,9 +170,16 @@ A 0 B F      Z X C V
 
 ```text
 .
+├── .github/workflows/release.yml
+├── CMakeLists.txt
 ├── Makefile
 ├── build/
+├── cmake/
+├── dist/
+├── packaging/
 ├── roms/
+├── scripts/release.sh
+├── tests/
 └── src/
     ├── chip8.c
     ├── chip8.h
@@ -183,7 +247,67 @@ changes.
 
 > I like programming, not writing commits or READMEs.
 
-### Requirements
+### Portable releases (no installation)
+
+Release packages target **x86_64 (64-bit)**. Extract them into a folder you
+own. No SDL2 installation, administrator account or installer is required.
+ROMs are not included in the packages.
+
+[Release v1.0.0 and SHA-256 checksums](https://github.com/LukasPio/CHIP8-Emulator/releases/tag/v1.0.0).
+
+**Windows 10/11:** extract [chip8-1.0.0-windows-x86_64.zip](https://github.com/LukasPio/CHIP8-Emulator/releases/download/v1.0.0/chip8-1.0.0-windows-x86_64.zip), open PowerShell
+in the extracted folder and run:
+
+```powershell
+.\chip8.exe "C:\Games\my rom.ch8"
+```
+
+SDL2 and the compiler runtime are linked into `chip8.exe`; no additional
+DLLs are needed. Its `asInvoker` manifest does not request elevation.
+
+**Linux:** extract [chip8-1.0.0-linux-x86_64.tar.gz](https://github.com/LukasPio/CHIP8-Emulator/releases/download/v1.0.0/chip8-1.0.0-linux-x86_64.tar.gz) and run:
+
+```sh
+tar -xzf chip8-1.0.0-linux-x86_64.tar.gz
+cd chip8-1.0.0-linux-x86_64
+./chip8 "/home/user/Games/my rom.ch8"
+```
+
+The archive preserves executable permissions. If another program strips
+those permissions when copying the binary, run `chmod +x chip8` (no `sudo`).
+Requires glibc 2.35 or newer, an X11 or Wayland desktop session, and the
+distribution's usual video/audio drivers. SDL2 is embedded. The build uses
+Ubuntu 22.04 as its baseline; musl distributions such as Alpine are not
+compatible with this package.
+
+Use `--help` for usage. Relative ROM paths are resolved from the terminal's
+current directory. Press `-` to quit.
+
+### Building release packages
+
+Use Docker to preserve the Linux compatibility baseline:
+
+```sh
+docker build -f packaging/Dockerfile -t chip8-release-builder .
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" chip8-release-builder
+```
+
+Both archives, extracted folders and `SHA256SUMS` are written to `dist/`.
+Release builds are optimized, without sanitizers. The SDL2 source download
+is version-pinned and SHA-256 verified; its license ships with the packages.
+
+For direct builds on an x86_64 Linux host, install CMake, Ninja, GNU Make,
+GCC, pkg-config, curl, zip and SDL2 development headers. Windows builds also
+require `gcc-mingw-w64-x86-64`. Run `make release` (both platforms),
+`make release-linux` or `make release-windows`. Linux builds made on a newer
+distribution may require a newer glibc.
+
+The `.github/workflows/release.yml` workflow packages both targets and tests
+the executables on Linux and Windows. Manual runs upload build artifacts;
+a `v1.0.0` tag matching the CMake version also creates a GitHub Release with
+both downloads after tests pass.
+
+### Development requirements
 
 - GCC or another C compiler compatible with the options in the `Makefile`;
 - GNU Make;
@@ -201,28 +325,26 @@ sudo apt install build-essential libsdl2-dev
 From the project root, run:
 
 ```sh
-mkdir -p build
 make compile
 ```
 
 The executable is generated at `build/chip8`. The current build includes
 debug symbols, disables optimizations, and enables AddressSanitizer and
-UndefinedBehaviorSanitizer. Since the `build/` directory is ignored by Git,
-it must be created before the first build.
+UndefinedBehaviorSanitizer. The `build/` directory is created automatically and ignored by Git.
 
 ### Running
 
 Provide the full or relative path to a `.ch8` ROM:
 
 ```sh
-./build/chip8 roms/3_corax_plus.ch8
+./build/chip8 roms/test/3_corax_plus.ch8
 ```
 
 To run the other included ROMs:
 
 ```sh
-./build/chip8 roms/1_chip8_logo.ch8
-./build/chip8 roms/2_ibm_logo.ch8
+./build/chip8 roms/test/1_chip8_logo.ch8
+./build/chip8 roms/test/2_ibm_logo.ch8
 ```
 
 Without an argument, the program prints `Usage: chip8 <rom_path>` and exits.
@@ -242,9 +364,16 @@ A 0 B F      Z X C V
 
 ```text
 .
+├── .github/workflows/release.yml
+├── CMakeLists.txt
 ├── Makefile
 ├── build/
+├── cmake/
+├── dist/
+├── packaging/
 ├── roms/
+├── scripts/release.sh
+├── tests/
 └── src/
     ├── chip8.c
     ├── chip8.h

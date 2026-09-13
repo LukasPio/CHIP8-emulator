@@ -1,16 +1,13 @@
-#include <SDL2/SDL.h>
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <time.h>
-#include <threads.h>
+#include <string.h>
 #include "chip8.h"
 
 #define CPU_HZ 700
 #define TIMER_HZ 60
-#define NS_PER_SEC 1000000000LL
-#define CPU_TIME_SLICE_NS (NS_PER_SEC / CPU_HZ)
-#define TIMER_TIME_SLICE_NS (NS_PER_SEC / TIMER_HZ)
 
 #define SAMPLE_RATE 44100
 #define BEEP_FREQ 440
@@ -28,7 +25,6 @@ void quit(void);
 void handle_input(void);
 void render(void);
 
-int64_t timespec_to_ns(struct timespec time);
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 SDL_AudioDeviceID audio_device = 0;
@@ -57,32 +53,35 @@ int audio_playing = 0;
 
 int main(int argc, char *argv[])
 {
+    if (argc == 2 && (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0))
+    {
+        printf("Usage: chip8 <rom_path>\nQuit: press - or close the window.\n");
+        return EXIT_SUCCESS;
+    }
     if (argc != 2)
     {
         printf("Usage: chip8 <rom_path>\n");
         return EXIT_FAILURE;
     }
-    setup_graphics();
-    setup_audio();
     init_chip8(&chip8);
     load_game(&chip8, argv[1]);
-    struct timespec last_cpu_time;
-    struct timespec last_timer_time;
-    struct timespec current_time;
-    clock_gettime(CLOCK_MONOTONIC, &last_cpu_time);
-    last_timer_time = last_cpu_time;
+    SDL_SetMainReady();
+    setup_graphics();
+    setup_audio();
+    const Uint64 frequency = SDL_GetPerformanceFrequency();
+    const Uint64 cpu_time_slice = frequency / CPU_HZ;
+    const Uint64 timer_time_slice = frequency / TIMER_HZ;
+    Uint64 last_cpu_time = SDL_GetPerformanceCounter();
+    Uint64 last_timer_time = last_cpu_time;
     while (!is_to_quit)
     {
-        clock_gettime(CLOCK_MONOTONIC, &current_time);
-        int64_t current_ns = timespec_to_ns(current_time);
-        int64_t last_cpu_ns = timespec_to_ns(last_cpu_time);
-        if (current_ns - last_cpu_ns >= CPU_TIME_SLICE_NS)
+        Uint64 current_time = SDL_GetPerformanceCounter();
+        if (current_time - last_cpu_time >= cpu_time_slice)
         {
             emulate_cycle(&chip8);
             last_cpu_time = current_time;
         }
-        int64_t last_timer_ns = timespec_to_ns(last_timer_time);
-        if (current_ns - last_timer_ns >= TIMER_TIME_SLICE_NS)
+        if (current_time - last_timer_time >= timer_time_slice)
         {
             decrease_timers(&chip8);
             last_timer_time = current_time;
@@ -90,17 +89,10 @@ int main(int argc, char *argv[])
         update_audio();
         handle_input();
         render();
-        struct timespec sleep_time = {
-            .tv_sec = 0,
-            .tv_nsec = 1000000};
-        thrd_sleep(&sleep_time, NULL);
+        SDL_Delay(1);
     }
     quit();
     return EXIT_SUCCESS;
-}
-int64_t timespec_to_ns(struct timespec time)
-{
-    return (int64_t)time.tv_sec * NS_PER_SEC + time.tv_nsec;
 }
 void setup_graphics(void)
 {
@@ -110,6 +102,8 @@ void setup_graphics(void)
     if (window == NULL)
         at_sdl_error();
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL)
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
     if (renderer == NULL)
         at_sdl_error();
     SDL_RenderSetLogicalSize(renderer, CHIP8_COLUMNS, CHIP8_ROWS);
