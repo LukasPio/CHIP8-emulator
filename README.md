@@ -1,5 +1,16 @@
 # CHIP-8 Emulator
 
+## Visão rápida
+
+**Emulador CHIP-8 clássico em C/SDL2**, concluído dentro do escopo proposto. Interpreta os opcodes, carrega ROMs pela linha de comando e implementa memória, registradores, pilha, teclado, display 64 × 32 e áudio. A CPU é executada a **700 Hz** e os timers a **60 Hz**.
+
+- **Engenharia:** interpretação de instruções, desenho de sprites por XOR com detecção de colisão, temporização independente e tratamento de entrada/saída com SDL2.
+- **Verificação:** ROMs de teste no repositório e testes de execução do binário em Linux e Windows no workflow de release.
+- **Entrega:** pacotes portáteis para Linux e Windows na [release v1.0.0](https://github.com/LukasPio/CHIP8-emulator/releases/tag/v1.0.0).
+- **Escopo:** ROMs de CHIP-8 clássico; variantes como SCHIP e XO-CHIP não são suportadas.
+
+Para experimentar, baixe a release e execute `chip8 <caminho-da-rom>`. Instruções completas de compilação, controles e testes estão abaixo.
+
 ## Idiomas / Languages
 
 - [Português (Brasil)](#português-brasil)
@@ -46,13 +57,9 @@ Os opcodes implementados atualmente são:
 Fx15  Fx18  Fx1E  Fx29  Fx33  Fx55  Fx65
 ```
 
-### Sobre os commits e este README
+### Histórico de desenvolvimento
 
-Os commits deste repositório foram feitos com auxílio de IA. Por isso, as
-mensagens provavelmente não são muito confiáveis como descrição exata das
-mudanças.
-
-> Eu gosto de programar, não de escrever commits ou READMEs.
+Mensagens de commit e partes da documentação foram produzidas com auxílio de IA; para avaliar o comportamento, consulte o código, os testes e os executáveis da release.
 
 ### Releases portáteis (sem instalação)
 
